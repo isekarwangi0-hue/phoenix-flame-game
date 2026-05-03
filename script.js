@@ -18,13 +18,27 @@ let bulletSpeed = 8;
 // Musuh
 let enemies = [];
 let enemySpeed = 2;
-let spawnRate = 120; // Semakin kecil, semakin sering muncul
+let spawnRate = 120;
 let frameCount = 0;
 
-// Kontrol tombol
+// ✅ KONTROL BARU UNTUK HP & KOMPUTER
 let keys = {};
+// Kontrol keyboard (untuk laptop)
 document.addEventListener('keydown', e => keys[e.code] = true);
 document.addEventListener('keyup', e => keys[e.code] = false);
+
+// Kontrol SENTUHAN HP ✨
+let touchX = null;
+canvas.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    const rect = canvas.getBoundingClientRect();
+    touchX = e.touches[0].clientX - rect.left;
+});
+canvas.addEventListener('touchend', () => {
+    touchX = null;
+    // Tembak pas lepas jari
+    bullets.push({x: phoenix.x + 30, y: phoenix.y});
+});
 
 // Fungsi gambar
 function drawPhoenix() {
@@ -45,11 +59,10 @@ function drawBullets() {
     ctx.fillStyle = '#ffd700';
     bullets.forEach(bullet => {
         ctx.beginPath();
-    ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI*2);
-    ctx.fill();
-    bullet.y -= bulletSpeed;
+        ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI*2);
+        ctx.fill();
+        bullet.y -= bulletSpeed;
     });
-    // Hapus peluru yang keluar layar
     bullets = bullets.filter(b => b.y > 0);
 }
 
@@ -65,7 +78,6 @@ function drawEnemies() {
 // Cek tabrakan
 function checkCollision() {
     enemies.forEach((enemy, eIndex) => {
-        // Tabrakan dengan phoenix
         if (
             enemy.x < phoenix.x + phoenix.width &&
             enemy.x + 40 > phoenix.x &&
@@ -76,7 +88,6 @@ function checkCollision() {
             document.location.reload();
         }
 
-        // Tabrakan dengan peluru
         bullets.forEach((bullet, bIndex) => {
             if (
                 bullet.x > enemy.x &&
@@ -93,18 +104,24 @@ function checkCollision() {
     });
 }
 
-// Update posisi & logika
+// Update posisi
 function update() {
-    // Gerak kiri
+    // Gerak pakai keyboard
     if (keys['ArrowLeft'] && phoenix.x > 0) phoenix.x -= phoenix.speed;
-    // Gerak kanan
     if (keys['ArrowRight'] && phoenix.x < canvas.width - phoenix.width) phoenix.x += phoenix.speed;
-    // Tembak
     if (keys['Space'] && frameCount % 8 === 0) {
         bullets.push({x: phoenix.x + 30, y: phoenix.y});
     }
 
-    // Munculkan musuh
+    // ✅ Gerak pakai sentuhan HP
+    if(touchX !== null){
+        phoenix.x = touchX - phoenix.width/2;
+        // Biar gak keluar layar
+        if(phoenix.x < 0) phoenix.x = 0;
+        if(phoenix.x > canvas.width - phoenix.width) phoenix.x = canvas.width - phoenix.width;
+    }
+
+    // Muncul musuh
     if(frameCount % spawnRate === 0) {
         enemies.push({
             x: Math.random() * (canvas.width - 40),
@@ -128,3 +145,4 @@ function gameLoop() {
 
 // Mulai game
 gameLoop();
+✨ Tambah kontrol sentuh HP 📱
